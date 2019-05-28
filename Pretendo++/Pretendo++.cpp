@@ -9,6 +9,7 @@ using namespace httplib;
 
 #define OAUTH_RESPONSE_TEMPLATE R"(<OAuth20><access_token><token>%s</token><refresh_token>%s</refresh_token><expires_in>%s</expires_in></access_token></OAuth20>)"
 #define NEX_RESPONSE_TEMPLATE R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?><nex_token><host>%s</host><nex_password>%s</nex_password><pid>%s</pid><port>%s</port><token>%s</token></nex_token>)"
+#define SERVICE_TOKEN_RESPONSE_TEMPLATE R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?><service_token><token>%s</token></service_token>)"
 
 static string dump_headers(const Headers &headers)
 {
@@ -134,6 +135,12 @@ int main()
 			response = StringUtils::sprintf("unknown game_server_id %s", game_server_id.c_str());
 			res.status = 400;
 		}
+		res.set_content(response, "application/xml;charset=UTF-8");
+	});
+	svr.Get("/v1/api/provider/service_token/@me", [&settings](const Request& req, Response& res)
+	{
+		auto response = StringUtils::sprintf(SERVICE_TOKEN_RESPONSE_TEMPLATE,
+			settings.GetValue("OAuth20", "service_token").c_str());
 		res.set_content(response, "application/xml;charset=UTF-8");
 	});
 	svr.set_logger([](const Request &req, const Response &res)
