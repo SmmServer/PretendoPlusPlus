@@ -1,26 +1,14 @@
 #include <iostream>
 #include "httplib.h"
+#include "Utf8Ini.h"
+#include "filehelper.h"
+#include "stringutils.h"
 
 using namespace std;
 using namespace httplib;
 
+#define OAUTH_RESPONSE_TEMPLATE R"(<OAuth20><access_token><token>%s</token><refresh_token>%s</refresh_token><expires_in>%s</expires_in></access_token></OAuth20>)"
 #define NEX_RESPONSE_TEMPLATE R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?><nex_token><host>%s</host><nex_password>%s</nex_password><pid>%s</pid><port>%s</port><token>%s</token></nex_token>)"
-
-#define OAUTH_RESPONSE "<OAuth20><access_token><token>1234567890abcdef1234567890abcdef</token><refresh_token>fedcba0987654321fedcba0987654321fedcba12</refresh_token><expires_in>3600</expires_in></access_token></OAuth20>"
-
-// FRIENDSFRIENDS... (128 bytes)
-#define FRIENDS_TOKEN "RlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlI="
-#define FRIENDS_HOST "127.0.0.1"
-#define FRIENDS_PORT "60000"
-#define FRIENDS_NEX_PID "1337"
-#define FRIENDS_NEX_PASSWORD "password"
-
-// SMMSMMSMM... (128 bytes)
-#define SMM_TOKEN "U01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU00="
-#define SMM_HOST "127.0.0.1"
-#define SMM_PORT "59900"
-#define SMM_NEX_PID "1337"
-#define SMM_NEX_PASSWORD "password"
 
 static string dump_headers(const Headers &headers)
 {
@@ -103,36 +91,47 @@ static string log(const Request &req, const Response &res)
 
 int main()
 {
-	Server svr;
-	svr.Post("/v1/api/oauth20/access_token/generate", [](const Request& req, Response& res)
+	String ini;
+	if(!FileHelper::ReadAllText("Pretendo++.ini", ini))
 	{
-		res.set_content(OAUTH_RESPONSE, "text/xml");
+		puts("Failed to read Pretendo++.ini");
+		return 1;
+	}
+	Utf8Ini settings;
+	int errorLine = 0;
+	if(!settings.Deserialize(ini, errorLine))
+	{
+		printf("Failed to parse Pretendo++.ini (line: %d)\n", errorLine);
+		return 1;
+	}
+	Server svr;
+	svr.Post("/v1/api/oauth20/access_token/generate", [&settings](const Request& req, Response& res)
+	{
+		auto response = StringUtils::sprintf(OAUTH_RESPONSE_TEMPLATE,
+			settings.GetValue("OAuth20", "access_token").c_str(),
+			settings.GetValue("OAuth20", "refresh_token").c_str(),
+			settings.GetValue("OAuth20", "expires_in").c_str()
+		);
+		puts(response.c_str());
+		res.set_content(response, "text/xml");
 	});
-	svr.Get("/v1/api/provider/nex_token/@me", [](const Request& req, Response& res)
+	svr.Get("/v1/api/provider/nex_token/@me", [&settings](const Request& req, Response& res)
 	{
 		auto game_server_id = req.get_param_value("game_server_id");
-		char response[2048] = "";
-		if(game_server_id == "00003200") // Friends
+		std::string response;
+		if(!settings.Keys(game_server_id).empty())
 		{
-			sprintf_s(response, NEX_RESPONSE_TEMPLATE,
-				FRIENDS_HOST,
-				FRIENDS_NEX_PASSWORD,
-				FRIENDS_NEX_PID,
-				FRIENDS_PORT,
-				FRIENDS_TOKEN);
-		}
-		else if(game_server_id == "1018DB00") // Super Mario Maker
-		{
-			sprintf_s(response, NEX_RESPONSE_TEMPLATE,
-				SMM_HOST,
-				SMM_NEX_PASSWORD,
-				SMM_NEX_PID,
-				SMM_PORT,
-				SMM_TOKEN);
+			response = StringUtils::sprintf(NEX_RESPONSE_TEMPLATE,
+				settings.GetValue(game_server_id, "host").c_str(),
+				settings.GetValue(game_server_id, "password").c_str(),
+				settings.GetValue(game_server_id, "pid").c_str(),
+				settings.GetValue(game_server_id, "port").c_str(),
+				settings.GetValue(game_server_id, "token").c_str()
+			);
 		}
 		else
 		{
-			strcpy_s(response, "nope");
+			response = StringUtils::sprintf("unknown game_server_id %s", game_server_id.c_str());
 			res.status = 400;
 		}
 		res.set_content(response, "application/xml;charset=UTF-8");

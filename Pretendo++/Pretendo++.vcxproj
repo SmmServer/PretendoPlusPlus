@@ -115,10 +115,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="filehelper.cpp" />
     <ClCompile Include="Pretendo++.cpp" />
+    <ClCompile Include="stringutils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="httplib.h" />
+    <ClInclude Include="stringutils.h" />
+    <ClInclude Include="Utf8Ini.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

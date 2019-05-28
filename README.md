@@ -8,6 +8,33 @@ Related repositories:
 - https://github.com/mrexodia/NintendoClients/tree/friends-server
 - https://github.com/Stary2001/nex-dissector
 
+## Pretendo++
+
+Here is an example `Pretendo++.ini`:
+
+```
+[OAuth20]
+access_token=1234567890abcdef1234567890abcdef
+refresh_token=fedcba0987654321fedcba0987654321fedcba12
+expires_in=3600
+
+; Friends
+[00003200]
+host=127.0.0.1
+port=60000
+pid=1337
+password=password
+token=RlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlJJRU5EU0ZSSUVORFNGUklFTkRTRlI=
+
+; SMM
+[1018DB00]
+host=127.0.0.1
+port=59900
+pid=1337
+password=password
+token=U01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU01NU00=
+```
+
 ## Fiddler
 
 Rules -> Customize Rules... at the end of the `OnBeforeRequest` method add the following:
