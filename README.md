@@ -50,6 +50,16 @@ if (oSession.HostnameIs("account.nintendo.net"))
     }
     oSession.fullUrl = "http://127.0.0.1:8383" + oSession.PathAndQuery;
 }
+else if(oSession.HostnameIs("wup-ama.app.nintendo.net"))
+{
+    if (oSession.HTTPMethodIs("CONNECT"))
+    {
+        // This is just a fake tunnel for CONNECT requests
+        oSession["x-replywithtunnel"] = "PretendoTunnel";
+        return;
+    }
+    oSession.fullUrl = "http://127.0.0.1:8383" + oSession.PathAndQuery;
+}
 ```
 
 Next up, export the Fiddler root certificate:
@@ -66,7 +76,7 @@ As long as you don't force Cemu/WiiU to connect to Fiddler as a proxy you will n
 
 ## Cemu
 
-You can use the `CemuMagic` module on **Cemu 1.15.3b** from this repository: https://github.com/mrexodia/AppInitHook/tree/cemu
+You can use the `CemuMagic` module on **Cemu 1.15.8** from this repository: https://github.com/mrexodia/AppInitHook/tree/cemu
 
 Inject CemuMagic.dll into Cemu.exe before startup (either by using the AppInitHook framework, or by other methods).
 
