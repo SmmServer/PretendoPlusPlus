@@ -147,6 +147,29 @@ int main()
 	{
 		cout << log(req, res);
 	});
+	svr.Post("/post", [](const Request& req, Response& res)
+	{
+		if(req.has_file("file"))
+		{
+			MultipartFile file = req.get_file_value("file");
+			std::string data = req.body.substr(file.offset, file.length);
+			uint64_t now = time(0);
+			char filename[64] = "";
+			sprintf_s(filename, "file%llu.bin", now);
+			FILE* f = nullptr;
+			fopen_s(&f, filename, "wb");
+			if(f)
+			{
+				fwrite(data.data(), data.size(), 1, f);
+				fclose(f);
+			}
+		}
+		else
+		{
+			res.status = 400;
+		}
+	});
+	svr.set_base_dir("www");
 	svr.listen("0.0.0.0", 8383);
 	return 0;
 }
