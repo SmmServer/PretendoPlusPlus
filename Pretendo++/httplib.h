@@ -630,7 +630,7 @@ socket_t create_socket(const char *host, int port, Fn fn,
 
     // Make 'reuse address' option available
     int yes = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&yes, sizeof(yes));
+    setsockopt(sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char *)&yes, sizeof(yes));
 
     // bind or connect
     if (fn(sock, *rp)) {

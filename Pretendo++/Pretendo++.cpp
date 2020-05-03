@@ -14,11 +14,12 @@ using namespace httplib;
 static string dump_headers(const Headers &headers)
 {
 	string s;
-	char buf[BUFSIZ];
 
 	for(const auto &x : headers) {
-		snprintf(buf, sizeof(buf), "%s: %s\n", x.first.c_str(), x.second.c_str());
-		s += buf;
+		s += x.first;
+		s += ": ";
+		s += x.second;
+		s += "\n";
 	}
 
 	return s;
@@ -92,6 +93,10 @@ static string log(const Request &req, const Response &res)
 
 int main()
 {
+	// disable buffering
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+
 	String ini;
 	if(!FileHelper::ReadAllText("Pretendo++.ini", ini))
 	{
@@ -143,9 +148,13 @@ int main()
 			settings.GetValue("OAuth20", "service_token").c_str());
 		res.set_content(response, "application/xml;charset=UTF-8");
 	});
+	svr.Get("/ping", [](const Request& req, Response& res)
+	{
+		res.set_content("pong", "text/plain");
+	});
 	svr.set_logger([](const Request &req, const Response &res)
 	{
-		cout << log(req, res);
+		printf("%s", log(req, res).c_str());
 	});
 	svr.Post("/post", [](const Request& req, Response& res)
 	{
@@ -170,6 +179,13 @@ int main()
 		}
 	});
 	svr.set_base_dir("www");
-	svr.listen("0.0.0.0", 8383);
+	auto host = "127.0.0.1";
+	auto port = 8383;
+	printf("serving on %s:%d\n", host, port);
+	if (!svr.listen(host, port))
+	{
+		puts("failed to bind");
+		return 1;
+	}
 	return 0;
 }
